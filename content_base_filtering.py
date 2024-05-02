@@ -3,17 +3,20 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-data = pd.read_csv('filtered_course.csv')
+data = pd.read_csv('course.csv')
 
 # preprocess the data
 data['Title'] = data['Title'].fillna('')
 data['Title'] = data['Title'].str.lower()
 
+# Combine 'Title' and 'Sub-Category' to create a new text column
+data['Text'] = data['Title'] + ' ' + data['Sub-Category'].fillna('')
+
 # initialize TF-IDF Vectorizer
 tfidf_vectorizer = TfidfVectorizer()
 
 # transform the TF-IDF Vectorizer
-tfidf_matrix = tfidf_vectorizer.fit_transform(data['Title'])
+tfidf_matrix = tfidf_vectorizer.fit_transform(data['Text'])
 
 def recommend_course(user_input, top_n=5):
     # user input
@@ -29,12 +32,11 @@ def recommend_course(user_input, top_n=5):
     top_indices = cosine_similarities.argsort()[-top_n:][::-1]
 
     # top N recommended courses
-    recommendations = data.iloc[top_indices][['Title', 'URL']]
+    recommendations = data.iloc[top_indices][['Title', 'URL', 'Sub-Category']]
     return recommendations
-
 
 user_input = input("Enter your course interest: ")
 recommendations = recommend_course(user_input)
 print("Recommended Courses:")
-for i, (title, url) in enumerate(zip(recommendations['Title'], recommendations['URL']), start=1):
-    print(f"{i}: {title} {url}")
+for i, (title, url, sub_Category) in enumerate(zip(recommendations['Title'], recommendations['URL'], recommendations['Sub-Category']), start=1):
+    print(f"{i}: {title} {url} {sub_Category}")
